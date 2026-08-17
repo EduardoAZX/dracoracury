@@ -15,19 +15,20 @@
   /* ---------- Menu mobile ---------- */
   var burger = document.getElementById('navBurger');
   var links = document.getElementById('navLinks');
-  burger.addEventListener('click', function () {
-    var open = links.classList.toggle('open');
+  function setMenu(open) {
+    links.classList.toggle('open', open);
     burger.classList.toggle('open', open);
     burger.setAttribute('aria-expanded', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  burger.addEventListener('click', function () {
+    setMenu(!links.classList.contains('open'));
   });
   links.querySelectorAll('a').forEach(function (a) {
-    a.addEventListener('click', function () {
-      links.classList.remove('open');
-      burger.classList.remove('open');
-      burger.setAttribute('aria-expanded', 'false');
-    });
+    a.addEventListener('click', function () { setMenu(false); });
   });
 
+    var ioSupported = "IntersectionObserver" in window;
   /* ---------- Reveal on scroll ---------- */
   var revealEls = document.querySelectorAll('.reveal');
   var io = new IntersectionObserver(function (entries) {
@@ -38,46 +39,11 @@
       }
     });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  if (!ioSupported) { revealEls.forEach(function (el) { el.classList.add("in"); }); }
   revealEls.forEach(function (el, i) {
     el.style.setProperty('--d', Math.min(i % 4, 3) * 90 + 'ms');
     io.observe(el);
   });
-
-  /* ---------- Antes & Depois: slider arrastável ---------- */
-  var slider = document.getElementById('baSlider');
-  if (slider) {
-    var pos = 50;
-    function setPos(p) {
-      pos = Math.max(8, Math.min(92, p));
-      slider.style.setProperty('--pos', pos + '%');
-    }
-    function fromEvent(ev) {
-      var rect = slider.getBoundingClientRect();
-      var x = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
-      return (x / rect.width) * 100;
-    }
-    function onDown(ev) {
-      ev.preventDefault();
-      setPos(fromEvent(ev));
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-      window.addEventListener('touchmove', onMove, { passive: false });
-      window.addEventListener('touchend', onUp);
-    }
-    function onMove(ev) {
-      ev.preventDefault();
-      setPos(fromEvent(ev));
-    }
-    function onUp() {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onUp);
-    }
-    slider.addEventListener('mousedown', onDown);
-    slider.addEventListener('touchstart', onDown, { passive: false });
-    slider.addEventListener('click', function (ev) { setPos(fromEvent(ev)); });
-  }
 
   /* ---------- FAQ: só um item aberto por vez ---------- */
   document.querySelectorAll('.faq__item').forEach(function (item) {
